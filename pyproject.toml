@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools", "wheel", "pybind11"]
+build-backend = "setuptools.build_meta"
+
+# [tool.setuptools]
+# packages = ["nonmin_pose", "nonmin_pose.models", "nonmin_pose.constraints"]
+
+[tool.setuptools.packages.find]
+# to also install the modules under folders w/o __init__.py, we use the pattern pkg*:
+include = ["nonmin_pose*"]
+
+[project]
+name = "nonmin_pose"
+version = "0.0.1"
+authors = [
+    {name = "Javier Tirado Garin", email = "jtiradogarin@gmail.com"},
+]
+description = "Code corresponding to the paper 'From Correspondences to Pose: Non-minimal Certifiably Optimal Relative Pose without Disambiguation'"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+dependencies = ["numpy"]
+
+[project.urls]
+"Homepage" = "https://github.com/javrtg/C2P"
+"Bug Tracker" = "https://github.com/javrtg/C2P/issues"
+
+[tool.cibuildwheel]
+build-verbosity = 3
+skip = ["cp36-*", "*_i686", "*musllinux*", "*-win32"]
+manylinux-x86_64-image = "manylinux2014"
+# manylinux-i686-image = "manylinux2014"
+# From https://github.com/Qiskit/qiskit-aer/blob/main/pyproject.toml:
+# We need to use pre-built versions of Numpy and Scipy in the tests; they have a
+# tendency to crash if they're installed from source by `pip install`,
+# so we force pip to use older ones without restricting any dependencies
+# that Numpy and Scipy might have.
+before-test = "pip install --only-binary=numpy,scipy numpy scipy"
+test-skip = ["pp*"]
+test-requires = ["pytest"]
+# to run the tests against the installed version whe use --import-mode=append.
+# https://docs.pytest.org/en/7.1.x/explanation/pythonpath.html#import-modes
+test-command = "pytest {project}/tests --import-mode=append"
+
+[tool.cibuildwheel.linux]
+before-all = [
+    "yum install -y openblas-devel lapack-devel wget",
+    "curl -L -O 'https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.17.tar.gz'",
+    "tar -zxf 'sdpa_7.3.17.tar.gz'",
+    "cd sdpa-7.3.17",
+    "./configure --prefix='$HOME/sdpa-7.3.17' --with-blas='-lopenblas' --with-lapack='-lopenblas'",
+    "make"
+]
+
+[[tool.cibuildwheel.overrides]]
+# Before Python 3.10, manylinux2010 is the most compatible:
+# https://iscinumpy.dev/post/cibuildwheel-2-2-0/
+select = "cp3?-manylinux*"
+manylinux-x86_64-image = "manylinux2010"
+# manylinux-i686-image = "manylinux2010"
+before-all = [
+    "yum install -y openblas-devel lapack-devel wget",
+    "curl -L -O 'https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.17.tar.gz'",
+    "tar -zxf 'sdpa_7.3.17.tar.gz'",
+    "cd sdpa-7.3.17",
+    "sed -i '36s|-fallow-argument-mismatch||' './mumps/Makefile'",
+    "./configure --prefix='$HOME/sdpa-7.3.17' --with-blas='-lopenblas' --with-lapack='-lopenblas'",
+    "make"
+]
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "curl -L -O 'https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.17.tar.gz'",
+    "tar -zxf 'sdpa_7.3.17.tar.gz'",
+    "cd sdpa-7.3.17",
+    # "./configure --prefix='$HOME/sdpa-7.3.17' --with-blas='-lopenblas' --with-lapack='-lopenblas'",
+    "./configure --prefix='$HOME/sdpa-7.3.17'",
+    "make"
+]
+
+[tool.cibuildwheel.windows]
+before-all = [
+    "curl -L -O 'https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.17.tar.gz'",
+    "tar -zxf sdpa_7.3.17.tar.gz",
+    # remove -fallow-argument-mismatch flag from MUMPS Makefile
+    # sed -i '36s|-fallow-argument-mismatch||' "./sdpa-7.3.17/mumps/Makefile"
+    "ls",
+    "cd ./sdpa-7.3.17",
+    "sh ./configure --with-blas='-lopenblas' --with-lapack='-lopenblas'",
+    "make"
+]
+# If using powershell, add mingw64 binaries to path but in front of
+# chocolatey binaries (if present) to avoid using e.g. gcc from chocolatey
+# before-all = """
+#     powershell -Command \
+#     $newPath = '${env:MSYS2_PATH}\\mingw64\\bin'; \
+#     $insertBefore = 'C:\\ProgramData\\Chocolatey\\bin'; \
+#     $paths = $env:PATH -split ';'; \
+#     $position = [array]::IndexOf($paths, $insertBefore); \
+#     if ($position -ne -1) {$paths = $paths[0..($position - 1)] + $newPath + $paths[$position..($paths.Length - 1)]}; $env:PATH = $paths -join ';'; \
+#     echo $env:PATH
+# """
+
+# [[tool.cibuildwheel.overrides]]
+# select = "*musllinux*"
+# before-all = [
+#   "apk add openblas-dev lapack-dev wget",
+#   "curl -L -O 'https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.17.tar.gz'",
+#   "tar -zxf 'sdpa_7.3.17.tar.gz'",
+#   "cd sdpa-7.3.17",
+#   "sed -i '36s|-fallow-argument-mismatch||' './mumps/Makefile'",
+#   "./configure --prefix='$HOME/sdpa-7.3.17' --with-blas='-lopenblas' --with-lapack='-lopenblas'",
+#   "make"
+# ]

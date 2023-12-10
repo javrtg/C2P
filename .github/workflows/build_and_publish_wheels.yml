@@ -1,0 +1,125 @@
+name: Build and deploy wheels
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+
+env:
+  MSYS2_ROOT: D:\a\_temp\msys64
+
+jobs:
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Provide gfortran (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # https://github.com/AntoineD/pdfo/blob/build-wheels/.github/workflows/build_wheels.yml
+          # https://github.com/actions/virtual-environments/issues/2524
+          # https://github.com/cbg-ethz/dce/blob/master/.github/workflows/pkgdown.yaml
+          sudo ln -s /usr/local/bin/gfortran-11 /usr/local/bin/gfortran
+          sudo mkdir /usr/local/gfortran
+          sudo ln -s /usr/local/Cellar/gcc@11/*/lib/gcc/11 /usr/local/gfortran/lib
+          gfortran --version
+          # ls /usr/local/gfortran/lib
+
+      - name: Setup MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: 'MSYS'
+          path-type: inherit
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-openblas
+            mingw-w64-x86_64-lapack
+
+      - name: Build wheels on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: pipx run cibuildwheel==2.16.2
+        env:
+          MSYSTEM: MINGW64
+          CIBW_ENVIRONMENT_WINDOWS: SDPA_DIR="${GITHUB_WORKSPACE}\\sdpa-7.3.17" MSYS2_ROOT=${MSYS2_ROOT}
+
+      - name: Build wheels on Linux and macOS
+        if: runner.os != 'Windows'
+        run: pipx run cibuildwheel==2.16.2
+        env:
+          CIBW_ENVIRONMENT: SDPA_DIR="$(pwd)/sdpa-7.3.17"
+          CIBW_ARCHS_MACOS: x86_64 arm64
+
+      - name: Upload wheels as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build source distribution
+        run: pipx run build --sdist
+
+      - name: Upload source distribution as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.tar.gz
+
+  publish-to-pypi:
+    name: Publish to pypi.org
+    if: github.event_name == 'release'
+
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # for trusted publishing
+
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  # publish-to-testpypi:
+  #   name: Publish to test.pypi.org
+  #   if: github.event_name == 'release'
+
+  #   needs: [build_wheels, build_sdist]
+  #   runs-on: ubuntu-latest
+  #   environment: testpypi
+  #   permissions:
+  #     id-token: write # for trusted publishing
+
+  #   steps:
+  #     - uses: actions/download-artifact@v3
+  #       with:
+  #         name: artifact
+  #         path: dist
+
+  #     - uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         repository-url: https://test.pypi.org/legacy/

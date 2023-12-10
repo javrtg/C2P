@@ -1,0 +1,16 @@
+name: c2p_exp
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - scipy
+  - matplotlib
+  - perfplot
+  - pillow
+  - tqdm
+  - pip:
+    - opencv-python-headless
