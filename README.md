@@ -4,7 +4,7 @@
     I3A, University of Zaragoza</p>
     <img width="66%" src="https://github.com/javrtg/C2P/blob/main/assets/teaser.png?raw=true">
     <p><strong>Relative pose directly from matches, without additional steps for disambiguation and pure rotation checks.</strong></p>
-    <p><a href="TODO-link">arXiv</a></p>
+    <p><a href="https://arxiv.org/abs/2312.05995">arXiv</a></p>
 </div>
 
 ## Installation
@@ -98,7 +98,7 @@ Returns:
 ```math
 \lambda_0 \mathbf{f}_0 = \lambda_1 \mathbf{R}_{01} \mathbf{f}_1 + \mathbf{t}_{01}
 ```  
-where $\lambda_0,\lambda_1\in\mathbb{R}$ represent the norm of the 3D point when expressed in cam {1} and cam {0}, respectively.
+where $\lambda_0,\lambda_1\in\mathbb{R}$ represent the norm of the 3D point when expressed in cam {0} and cam {1}, respectively.
 
 
 ### Zhao's [[2]](#2) and García-Salguero et al.'s [[3]](#3) methods
@@ -339,6 +339,17 @@ This work provides and uses python bindings to [SDPA](https://sdpa.sourceforge.n
 
 SDPA is licensed under the [GNU Lesser General Public License v2.0](src/COPYING). As such this project is licensed under the [GNU Lesser General Public License v3.0](./LICENSE).
 
+## Citation
+
+If you find this work useful, please consider citing:
+```bibtex
+@article{tirado2023c2p,
+  title={From Correspondences to Pose: Non-minimal Certifiably Optimal Relative Pose without Disambiguation},
+  author={Tirado-Gar{\'\i}n, Javier and Civera, Javier},
+  journal={arXiv preprint arXiv:2312.05995},
+  year={2023}
+}
+```
 
 <!-- <table>
 <tr>
