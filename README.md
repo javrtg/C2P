@@ -4,7 +4,11 @@
     I3A, University of Zaragoza</p>
     <img width="66%" src="https://github.com/javrtg/C2P/blob/main/assets/teaser.png?raw=true">
     <p><strong>Relative pose directly from matches, without additional steps for disambiguation and pure rotation checks.</strong></p>
-    <p><a href="https://arxiv.org/abs/2312.05995">arXiv</a></p>
+    <p align="center">
+        <a href="https://arxiv.org/abs/2312.05995">arXiv</a> |
+        <a href="https://youtu.be/t2FP0CfgPSA?si=bo-Fq5DZHG6svGEQ">Video</a> |
+        <a href="https://javrtg.github.io/C2P/">Project Page</a> 
+    </p> 
 </div>
 
 ## Installation
@@ -343,11 +347,11 @@ SDPA is licensed under the [GNU Lesser General Public License v2.0](src/COPYING)
 
 If you find this work useful, please consider citing:
 ```bibtex
-@article{tirado2023c2p,
+@article{tirado2024c2p,
   title={From Correspondences to Pose: Non-minimal Certifiably Optimal Relative Pose without Disambiguation},
   author={Tirado-Gar{\'\i}n, Javier and Civera, Javier},
-  journal={arXiv preprint arXiv:2312.05995},
-  year={2023}
+  journal={CVPR},
+  year={2024}
 }
 ```
 
